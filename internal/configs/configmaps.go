@@ -215,6 +215,14 @@ func ParseConfigMap(cfgm *v1.ConfigMap, nginxPlus bool) *ConfigParams {
 		cfgParams.MainStreamLogFormat = streamLogFormat
 	}
 
+	if defaultServerAccessLogOff, exists, err := GetMapKeyAsBool(cfgm.Data, "default-server-access-log-off", cfgm); exists {
+		if err != nil {
+			glog.Error(err)
+		} else {
+			cfgParams.DefaultServerAccessLogOff = defaultServerAccessLogOff
+		}
+	}
+
 	if proxyBuffering, exists, err := GetMapKeyAsBool(cfgm.Data, "proxy-buffering", cfgm); exists {
 		if err != nil {
 			glog.Error(err)
@@ -429,45 +437,46 @@ func ParseConfigMap(cfgm *v1.ConfigMap, nginxPlus bool) *ConfigParams {
 // GenerateNginxMainConfig generates MainConfig.
 func GenerateNginxMainConfig(staticCfgParams *StaticConfigParams, config *ConfigParams) *version1.MainConfig {
 	nginxCfg := &version1.MainConfig{
+		AccessLogOff:                   config.MainAccessLogOff,
+		DefaultServerAccessLogOff:      config.DefaultServerAccessLogOff,
+		ErrorLogLevel:                  config.MainErrorLogLevel,
 		HealthStatus:                   staticCfgParams.HealthStatus,
 		HealthStatusURI:                staticCfgParams.HealthStatusURI,
+		HTTP2:                          config.HTTP2,
+		HTTPSnippets:                   config.MainHTTPSnippets,
+		KeepaliveRequests:              config.MainKeepaliveRequests,
+		KeepaliveTimeout:               config.MainKeepaliveTimeout,
+		LogFormat:                      config.MainLogFormat,
+		MainSnippets:                   config.MainMainSnippets,
 		NginxStatus:                    staticCfgParams.NginxStatus,
 		NginxStatusAllowCIDRs:          staticCfgParams.NginxStatusAllowCIDRs,
 		NginxStatusPort:                staticCfgParams.NginxStatusPort,
-		StubStatusOverUnixSocketForOSS: staticCfgParams.StubStatusOverUnixSocketForOSS,
-		MainSnippets:                   config.MainMainSnippets,
-		HTTPSnippets:                   config.MainHTTPSnippets,
-		StreamSnippets:                 config.MainStreamSnippets,
+		OpenTracingEnabled:             config.MainOpenTracingEnabled,
+		OpenTracingLoadModule:          config.MainOpenTracingLoadModule,
+		OpenTracingTracer:              config.MainOpenTracingTracer,
+		OpenTracingTracerConfig:        config.MainOpenTracingTracerConfig,
+		ProxyProtocol:                  config.ProxyProtocol,
+		ResolverAddresses:              config.ResolverAddresses,
+		ResolverIPV6:                   config.ResolverIPV6,
+		ResolverTimeout:                config.ResolverTimeout,
+		ResolverValid:                  config.ResolverValid,
 		ServerNamesHashBucketSize:      config.MainServerNamesHashBucketSize,
 		ServerNamesHashMaxSize:         config.MainServerNamesHashMaxSize,
-		AccessLogOff:                   config.MainAccessLogOff,
-		LogFormat:                      config.MainLogFormat,
-		ErrorLogLevel:                  config.MainErrorLogLevel,
-		StreamLogFormat:                config.MainStreamLogFormat,
-		SSLProtocols:                   config.MainServerSSLProtocols,
+		ServerTokens:                   config.ServerTokens,
 		SSLCiphers:                     config.MainServerSSLCiphers,
 		SSLDHParam:                     config.MainServerSSLDHParam,
 		SSLPreferServerCiphers:         config.MainServerSSLPreferServerCiphers,
-		HTTP2:                          config.HTTP2,
-		ServerTokens:                   config.ServerTokens,
-		ProxyProtocol:                  config.ProxyProtocol,
-		WorkerProcesses:                config.MainWorkerProcesses,
-		WorkerCPUAffinity:              config.MainWorkerCPUAffinity,
-		WorkerShutdownTimeout:          config.MainWorkerShutdownTimeout,
-		WorkerConnections:              config.MainWorkerConnections,
-		WorkerRlimitNofile:             config.MainWorkerRlimitNofile,
-		ResolverAddresses:              config.ResolverAddresses,
-		ResolverIPV6:                   config.ResolverIPV6,
-		ResolverValid:                  config.ResolverValid,
-		ResolverTimeout:                config.ResolverTimeout,
-		KeepaliveTimeout:               config.MainKeepaliveTimeout,
-		KeepaliveRequests:              config.MainKeepaliveRequests,
+		SSLProtocols:                   config.MainServerSSLProtocols,
+		StreamLogFormat:                config.MainStreamLogFormat,
+		StreamSnippets:                 config.MainStreamSnippets,
+		StubStatusOverUnixSocketForOSS: staticCfgParams.StubStatusOverUnixSocketForOSS,
 		VariablesHashBucketSize:        config.VariablesHashBucketSize,
 		VariablesHashMaxSize:           config.VariablesHashMaxSize,
-		OpenTracingLoadModule:          config.MainOpenTracingLoadModule,
-		OpenTracingEnabled:             config.MainOpenTracingEnabled,
-		OpenTracingTracer:              config.MainOpenTracingTracer,
-		OpenTracingTracerConfig:        config.MainOpenTracingTracerConfig,
+		WorkerConnections:              config.MainWorkerConnections,
+		WorkerCPUAffinity:              config.MainWorkerCPUAffinity,
+		WorkerProcesses:                config.MainWorkerProcesses,
+		WorkerRlimitNofile:             config.MainWorkerRlimitNofile,
+		WorkerShutdownTimeout:          config.MainWorkerShutdownTimeout,
 	}
 	return nginxCfg
 }
