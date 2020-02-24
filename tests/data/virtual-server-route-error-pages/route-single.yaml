@@ -14,6 +14,6 @@ spec:
       - codes: [502]
         redirect:
           code: 307
-          url: ${scheme}://virtual-server.example.com/error_${status}.html
+          url: ${scheme}://virtual-server.example.com/error.html
     action:
       pass: backend2

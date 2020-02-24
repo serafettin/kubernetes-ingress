@@ -14,10 +14,10 @@ spec:
   subroutes:
   - path: "/backends/backend1"
     errorPages:
-      - codes: []
+      - codes: [308]
         redirect:
           code: 101
-          url: ${something}
+          url: /relative/path/url.html
     action:
       pass: backend1
   - path: "/backends/backend3"
@@ -26,7 +26,8 @@ spec:
         return:
           code: 100
           type: ±!@£$%^&*()
-          body:
+          body: |
+            {\"status\": \"${status}\",\"message\":\"Forbidden\"}
           headers:
           - name: x-debug-original-status
             value: ${schema}

@@ -27,7 +27,7 @@ spec:
       - codes: [502]
         redirect:
           code: 308
-          url: ${scheme}://virtual-server-route.example.com/error_${status}.html
+          url: ${scheme}://virtual-server-route.example.com/error.html
   - path: "/backends/backend3"
     errorPages:
       - codes: [502]
@@ -35,9 +35,9 @@ spec:
           code: 207
           type: application/json
           body: |
-            {\"status\": \"${status}\",\"message\":\"Forbidden\"}
+            {\"status\": \"${upstream_status}\",\"message\":\"Forbidden\"}
           headers:
             - name: x-debug-original-status
-              value: ${status}
+              value: ${upstream_status}
     action:
       pass: backend3

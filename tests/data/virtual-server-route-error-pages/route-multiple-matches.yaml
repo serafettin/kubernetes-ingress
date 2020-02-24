@@ -34,7 +34,7 @@ spec:
       - codes: [502, 404]
         redirect:
           code: 307
-          url: ${scheme}://virtual-server-route.example.com/error_${status}.html
+          url: ${scheme}://virtual-server-route.example.com/error.html
     action:
       pass: backend4-stable
   - path: "/backends/backend3"
@@ -44,9 +44,9 @@ spec:
           code: 207
           type: application/json
           body: |
-            {\"status\": \"${status}\",\"message\":\"Forbidden\"}
+            {\"status\": \"${upstream_status}\",\"message\":\"Forbidden\"}
           headers:
             - name: x-debug-original-status
-              value: ${status}
+              value: ${upstream_status}
     action:
       pass: backend3-deprecated

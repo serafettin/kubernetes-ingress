@@ -20,16 +20,16 @@ class TestVSErrorPages:
                                     virtual_server_setup.vs_host, allow_redirects=False)
         resp = requests.get(virtual_server_setup.backend_1_url,
                             headers={"host": virtual_server_setup.vs_host}, allow_redirects=False)
-        assert f'http://{virtual_server_setup.vs_host}/error_307.html' in resp.next.url
+        assert f'http://{virtual_server_setup.vs_host}/error.html' in resp.next.url
 
     def test_return_strategy(self, kube_apis, crd_ingress_controller, virtual_server_setup):
         wait_and_assert_status_code(207, virtual_server_setup.backend_2_url, virtual_server_setup.vs_host)
         resp = requests.get(virtual_server_setup.backend_2_url,
                             headers={"host": virtual_server_setup.vs_host})
         resp_content = json.loads(resp.content)
-        assert resp_content['status'] == '207' \
+        assert resp_content['status'] == '502' \
             and resp_content['message'] == 'Forbidden' \
-            and resp.headers.get('x-debug-original-status') == '207'
+            and resp.headers.get('x-debug-original-status') == '502'
 
     def test_virtual_server_after_update(self, kube_apis, crd_ingress_controller, virtual_server_setup):
         patch_virtual_server_from_yaml(kube_apis.custom_objects, virtual_server_setup.vs_name,
@@ -40,7 +40,7 @@ class TestVSErrorPages:
         resp = requests.get(virtual_server_setup.backend_1_url,
                             headers={"host": virtual_server_setup.vs_host, "x-forwarded-proto": "http"},
                             allow_redirects=False)
-        assert f'http://{virtual_server_setup.vs_host}/error_301_http.html' in resp.next.url
+        assert f'http://{virtual_server_setup.vs_host}/error_http.html' in resp.next.url
 
         wait_and_assert_status_code(502, virtual_server_setup.backend_2_url, virtual_server_setup.vs_host)
         resp = requests.get(virtual_server_setup.backend_2_url,
@@ -50,12 +50,12 @@ class TestVSErrorPages:
 
     def test_validation_event_flow(self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller,
                                    virtual_server_setup):
-        err_text = "Invalid value: \"schema\": " \
-                   "'schema' contains an invalid NGINX variable. Accepted variables are: status"
         invalid_fields = [
-            "spec.routes[0].errorPages[0].codes: Required value: must include at least 1 status code in `codes`",
-            "spec.routes[1].errorPages[0].return.body: Required value",
-            f"spec.routes[1].errorPages[0].return.headers[0].value: {err_text}"
+            "spec.routes[0].errorPages[0].redirect.url: Invalid value",
+            "spec.routes[0].errorPages[0].redirect.code: Invalid value: 101",
+            "spec.routes[1].errorPages[0].return.body: Invalid value: \"status\"",
+            "spec.routes[1].errorPages[0].return.code: Invalid value: 100",
+            "spec.routes[1].errorPages[0].return.headers[0].value: Invalid value: \"schema\""
         ]
         text = f"{virtual_server_setup.namespace}/{virtual_server_setup.vs_name}"
         vs_event_text = f"VirtualServer {text} is invalid and was rejected: "
@@ -84,4 +84,4 @@ class TestVSErrorPages:
                                     virtual_server_setup.vs_host, allow_redirects=False)
         resp = requests.get(virtual_server_setup.backend_1_url,
                             headers={"host": virtual_server_setup.vs_host}, allow_redirects=False)
-        assert f'http://{virtual_server_setup.vs_host}/error_{v_s_data["expected_code"]}.html' in resp.next.url
+        assert f'http://{virtual_server_setup.vs_host}/error.html' in resp.next.url

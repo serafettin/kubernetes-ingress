@@ -23,7 +23,7 @@ class TestVSRErrorPages:
                                     v_s_route_setup.vs_host, allow_redirects=False)
         resp = requests.get(f"{req_url}{v_s_route_setup.route_m.paths[0]}",
                             headers={"host": v_s_route_setup.vs_host}, allow_redirects=False)
-        assert f'http://{v_s_route_setup.vs_host}/error_307.html' in resp.next.url
+        assert f'http://{v_s_route_setup.vs_host}/error.html' in resp.next.url
 
     def test_return_strategy(self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller,
                              v_s_route_setup):
@@ -32,9 +32,9 @@ class TestVSRErrorPages:
         resp = requests.get(f"{req_url}{v_s_route_setup.route_m.paths[1]}",
                             headers={"host": v_s_route_setup.vs_host})
         resp_content = json.loads(resp.content)
-        assert resp_content['status'] == '207' \
+        assert resp_content['status'] == '502' \
             and resp_content['message'] == 'Forbidden' \
-            and resp.headers.get('x-debug-original-status') == '207'
+            and resp.headers.get('x-debug-original-status') == '502'
 
     def test_virtual_server_after_update(self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller,
                                          v_s_route_setup):
@@ -48,7 +48,7 @@ class TestVSRErrorPages:
         resp = requests.get(f"{req_url}{v_s_route_setup.route_m.paths[0]}",
                             headers={"host": v_s_route_setup.vs_host, "x-forwarded-proto": "http"},
                             allow_redirects=False)
-        assert f'http://{v_s_route_setup.vs_host}/error_301_http.html' in resp.next.url
+        assert f'http://{v_s_route_setup.vs_host}/error_http.html' in resp.next.url
 
         wait_and_assert_status_code(502, f"{req_url}{v_s_route_setup.route_m.paths[1]}",
                                     v_s_route_setup.vs_host, allow_redirects=False)
@@ -59,12 +59,12 @@ class TestVSRErrorPages:
 
     def test_validation_event_flow(self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller,
                                    v_s_route_setup):
-        err_text = "Invalid value: \"schema\": " \
-                   "'schema' contains an invalid NGINX variable. Accepted variables are: status"
         invalid_fields_m = [
-            f"spec.subroutes[0].errorPages[0].codes: Required value: must include at least 1 status code in `codes",
-            f"spec.subroutes[1].errorPages[0].return.body: Required value",
-            f"spec.subroutes[1].errorPages[0].return.headers[0].value: {err_text}"
+            "spec.subroutes[0].errorPages[0].redirect.url: Invalid value",
+            "spec.subroutes[0].errorPages[0].redirect.code: Invalid value: 101",
+            "spec.subroutes[1].errorPages[0].return.body: Invalid value: \"status\"",
+            "spec.subroutes[1].errorPages[0].return.code: Invalid value: 100",
+            "spec.subroutes[1].errorPages[0].return.headers[0].value: Invalid value: \"schema\""
         ]
         invalid_fields_s = [
             "spec.subroutes[0].errorPages[0].redirect.url: Required value: must specify a url"
@@ -110,7 +110,7 @@ class TestVSRErrorPages:
                                     v_s_route_setup.vs_host, allow_redirects=False)
         resp = requests.get(f"{req_url}{v_s_route_setup.route_m.paths[0]}",
                             headers={"host": v_s_route_setup.vs_host}, allow_redirects=False)
-        assert f'http://{v_s_route_setup.vs_host}/error_{v_s_r_data["expected_code"]}.html' in resp.next.url
+        assert f'http://{v_s_route_setup.vs_host}/error.html' in resp.next.url
 
     def test_vsr_overrides_vs(self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller,
                               v_s_route_setup):
@@ -128,5 +128,5 @@ class TestVSRErrorPages:
                                     v_s_route_setup.vs_host, allow_redirects=False)
         resp = requests.get(f"{req_url}{v_s_route_setup.route_m.paths[0]}",
                             headers={"host": v_s_route_setup.vs_host}, allow_redirects=False)
-        assert f'http://{v_s_route_setup.vs_host}/error_307.html' in resp.next.url
+        assert f'http://{v_s_route_setup.vs_host}/error.html' in resp.next.url
 
